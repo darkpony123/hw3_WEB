@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: company
+      POSTGRES_USER: company_user
+      POSTGRES_PASSWORD: company_pass
+    volumes:
+      - company_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U company_user -d company"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ./app
+    environment:
+      DATABASE_URL: postgresql+psycopg2://company_user:company_pass@db:5432/company
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  company_data:
